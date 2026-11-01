@@ -1,0 +1,41 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.cpython-*
+
+# Virtual Environments
+venv/
+env/
+ENV/
+.venv/
+
+# OpenClip Outputs & Downloads
+outputs/
+downloads/
+temp_workspace/
+
+# Media and cache files
+*.mp4
+*.mkv
+*.mov
+*.avi
+*.webm
+*.wav
+*.ass
+*.srt
+*.log
+
+# Test artifacts
+tests/output_test/
+
+# OS and IDE files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Huggingface and model caches
+.cache/
