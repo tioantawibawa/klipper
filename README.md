@@ -75,30 +75,40 @@ OpenClip/
 
 ## 🚀 Cara Menjalankan
 
-### 1. Prasyarat Sistem
-- **Python 3.10 - 3.12** (Direkomendasikan Python 3.11).
-- **FFmpeg** terpasang dan dapat diakses dari PATH terminal.
-
-### 2. Instalasi Dependensi
+### 💻 Di Laptop Baru / Lain (Clone dari GitHub)
 ```bash
-# Buat dan aktifkan virtual environment (opsional tapi disarankan)
-py -3.11 -m venv venv
-venv\Scripts\activate
+# 1. Clone repository
+git clone https://github.com/tioantawibawa/klipper.git
+cd klipper
 
-# Install dependensi
+# 2. Buat virtual environment (Direkomendasikan Python 3.11)
+# Windows:
+py -3.11 -m venv venv
+.\venv\Scripts\activate
+
+# macOS / Linux:
+# python3 -m venv venv
+# source venv/bin/activate
+
+# 3. Install seluruh dependensi
 pip install -r requirements.txt
+
+# 4. Pastikan FFmpeg terpasang di sistem PATH
+# Windows: winget install Gyan.FFmpeg
+# macOS:   brew install ffmpeg
+# Linux:   sudo apt install ffmpeg
+
+# 5. Jalankan aplikasi
+python main.py
+# (Atau klik ganda run_openclip.bat di Windows)
 ```
 
-### 3. Cek Kesiapan Sistem
+---
+
+## 🔧 Verifikasi Kesiapan Sistem
 Jalankan verifikasi sistem untuk mendeteksi ketersediaan FFmpeg dan akselerasi GPU:
 ```bash
 python check_env.py
-```
-
-### 4. Jalankan Aplikasi
-Di Windows, klik ganda `run_openclip.bat` atau jalankan via terminal:
-```bash
-python main.py
 ```
 
 ---
