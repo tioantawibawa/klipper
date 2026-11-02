@@ -1,10 +1,10 @@
-# 🎬 OpenClip - 100% Local AI Short Video Clipper
+# OpenClip - 100% Local AI Short Video Clipper
 
 **OpenClip** adalah aplikasi desktop modern (Windows & macOS) alternatif dari *KlipDong Desktop*. Aplikasi ini memotong video panjang berformat horizontal (16:9) menjadi video pendek vertikal (9:16) berdurasi 30–60 detik yang dioptimalkan untuk **TikTok, Instagram Reels, dan YouTube Shorts** secara **100% lokal** di laptop pengguna tanpa memerlukan API cloud berbayar.
 
 ---
 
-## ✨ Fitur Utama
+## Fitur Utama
 
 1. **Dual Input Source**:
    - **Video Lokal**: Drag & drop file video (`.mp4`, `.mov`, `.mkv`, `.avi`, `.webm`).
@@ -37,7 +37,7 @@
 
 ---
 
-## 🏗 Struktur Proyek
+## Struktur Proyek
 
 ```
 OpenClip/
@@ -73,9 +73,9 @@ OpenClip/
 
 ---
 
-## 🚀 Cara Menjalankan
+## Cara Menjalankan
 
-### 💻 Di Laptop Baru / Lain (Clone dari GitHub)
+### 1. Di Laptop Baru / Lain (Clone dari GitHub)
 ```bash
 # 1. Clone repository
 git clone https://github.com/tioantawibawa/klipper.git
@@ -105,7 +105,7 @@ python main.py
 
 ---
 
-## 🔧 Verifikasi Kesiapan Sistem
+## 2. Verifikasi Kesiapan Sistem
 Jalankan verifikasi sistem untuk mendeteksi ketersediaan FFmpeg dan akselerasi GPU:
 ```bash
 python check_env.py
@@ -113,7 +113,7 @@ python check_env.py
 
 ---
 
-## 🧪 Hasil Pengujian Pipeline
+## 3. Hasil Pengujian Pipeline
 Pengujian otomatis end-to-end telah dijalankan melalui `tests/test_pipeline.py`:
 - [x] Ekstraksi audio mono 16kHz berhasil.
 - [x] Generator subtitle ASS membuat event kata aktif per centisecond (`\c&H0000E6FF\fscx115\fscy115`).
