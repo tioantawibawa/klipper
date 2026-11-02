@@ -40,12 +40,12 @@ STYLE_PRESETS = {
         highlight_color="&H0000E6FF",   # Vibrant Gold / Yellow
         outline_color="&H00000000",     # Solid Black Outline
         font_name="Arial Black",
-        font_size=20,
+        font_size=64,
         bold=1,
-        outline=3,
+        outline=4,
         shadow=2,
         alignment=2,
-        margin_v=90
+        margin_v=380
     ),
     SubtitleStyle.GREEN_HIGHLIGHT: StyleConfig(
         name="GreenHighlight",
@@ -53,25 +53,25 @@ STYLE_PRESETS = {
         highlight_color="&H0032FF00",   # Neon Green
         outline_color="&H00000000",     # Solid Black Outline
         font_name="Arial Black",
-        font_size=20,
+        font_size=64,
         bold=1,
-        outline=3,
+        outline=4,
         shadow=2,
         alignment=2,
-        margin_v=90
+        margin_v=380
     ),
     SubtitleStyle.CLEAN_WHITE: StyleConfig(
         name="CleanWhite",
         primary_color="&H00A0A0A0",     # Muted Silver for inactive
         highlight_color="&H00FFFFFF",   # Crisp White for active
         outline_color="&H00181818",     # Charcoal outline
-        font_name="Arial",
-        font_size=19,
+        font_name="Arial Black",
+        font_size=62,
         bold=1,
-        outline=2,
-        shadow=1,
+        outline=4,
+        shadow=2,
         alignment=2,
-        margin_v=90
+        margin_v=380
     ),
     SubtitleStyle.FLAME_ORANGE: StyleConfig(
         name="FlameOrange",
@@ -79,12 +79,12 @@ STYLE_PRESETS = {
         highlight_color="&H000066FF",   # Hot Orange
         outline_color="&H00000000",     # Solid Black Outline
         font_name="Arial Black",
-        font_size=20,
+        font_size=64,
         bold=1,
-        outline=3,
+        outline=4,
         shadow=2,
         alignment=2,
-        margin_v=90
+        margin_v=380
     ),
 }
 
@@ -101,6 +101,13 @@ class SubtitleGenerator:
         self.words_per_group = words_per_group
         self.canvas_width = canvas_width
         self.canvas_height = canvas_height
+
+        # Scale font size, borders, and margins proportional to canvas height (base: 1920p)
+        scale_ratio = self.canvas_height / 1920.0
+        self.effective_font_size = max(18, int(self.style_config.font_size * scale_ratio))
+        self.effective_margin_v = max(40, int(self.style_config.margin_v * scale_ratio))
+        self.effective_outline = max(2, int(self.style_config.outline * scale_ratio))
+        self.effective_shadow = max(1, int(self.style_config.shadow * scale_ratio))
 
     @staticmethod
     def _format_ass_time(seconds: float) -> str:
@@ -176,7 +183,7 @@ class SubtitleGenerator:
             "",
             "[V4+ Styles]",
             "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding",
-            f"Style: Default,{cfg.font_name},{cfg.font_size},{cfg.primary_color},&H000000FF,{cfg.outline_color},&H80000000,{cfg.bold},0,0,0,100,100,1,0,1,{cfg.outline},{cfg.shadow},{cfg.alignment},20,20,{cfg.margin_v},1",
+            f"Style: Default,{cfg.font_name},{self.effective_font_size},{cfg.primary_color},&H000000FF,{cfg.outline_color},&H80000000,{cfg.bold},0,0,0,100,100,1,0,1,{self.effective_outline},{self.effective_shadow},{cfg.alignment},20,20,{self.effective_margin_v},1",
             "",
             "[Events]",
             "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text",

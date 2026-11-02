@@ -19,6 +19,7 @@ class RenderConfig:
     output_dir: str = "outputs"
     encoder: str = "auto"              # 'auto', 'h264_nvenc', 'h264_qsv', 'h264_amf', 'h264_mf', 'libx264'
     scale_to_1080p: bool = True       # Scale to 1080x1920
+    framing_mode: str = "fit_blur"    # 'fit_blur' (Fit 16:9 + Blur BG) or 'crop_face' (9:16 Crop)
     crf: int = 20                     # 18-24 for libx264
     nvenc_cq: int = 23                # CQ for NVENC
     audio_bitrate: str = "192k"
@@ -174,34 +175,54 @@ class VideoEditor:
         config: RenderConfig,
         progress_callback: Optional[Callable[[float, str], None]]
     ) -> str:
-        # Build video filter chain
-        filters = []
-        # 1. 9:16 Crop
-        filters.append(f"crop={crop_w}:{crop_h}:{crop_x}:{crop_y}")
-
-        # 2. Scale to 1080x1920 if requested
-        if config.scale_to_1080p:
-            filters.append("scale=1080:1920:flags=lanczos")
-
-        # 3. ASS Subtitles (with Windows path escaping and quote escaping)
+        escaped_ass = ""
         if config.burn_subtitles and ass_subtitles_path and os.path.exists(ass_subtitles_path):
             escaped_ass = os.path.abspath(ass_subtitles_path).replace("\\", "/")
             escaped_ass = escaped_ass.replace(":", r"\:")
             escaped_ass = escaped_ass.replace("'", r"'\\\''")
-            filters.append(f"ass='{escaped_ass}'")
 
-        vf_str = ",".join(filters)
+        if config.framing_mode == "fit_blur":
+            # 16:9 Full video centered on 1080x1920 with aesthetic blurred background (No text/infographic cutoff)
+            filter_complex = (
+                "[0:v]split=2[v_bg][v_fg];"
+                "[v_bg]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,boxblur=25:5,eq=brightness=-0.08[bg];"
+                "[v_fg]scale=1080:-2[fg];"
+            )
+            if escaped_ass:
+                filter_complex += f"[bg][fg]overlay=0:(H-h)/2,ass='{escaped_ass}'[outv]"
+            else:
+                filter_complex += "[bg][fg]overlay=0:(H-h)/2[outv]"
 
-        # Build FFmpeg command
-        cmd = [
-            self.ffmpeg_bin,
-            "-y",
-            "-ss", f"{start_time:.3f}",
-            "-t", f"{duration:.3f}",
-            "-i", video_path,
-            "-vf", vf_str,
-            "-c:v", encoder,
-        ]
+            cmd = [
+                self.ffmpeg_bin,
+                "-y",
+                "-ss", f"{start_time:.3f}",
+                "-t", f"{duration:.3f}",
+                "-i", video_path,
+                "-filter_complex", filter_complex,
+                "-map", "[outv]",
+                "-map", "0:a?",
+                "-c:v", encoder,
+            ]
+        else:
+            # 9:16 Crop
+            filters = []
+            filters.append(f"crop={crop_w}:{crop_h}:{crop_x}:{crop_y}")
+            if config.scale_to_1080p:
+                filters.append("scale=1080:1920:flags=lanczos")
+            if escaped_ass:
+                filters.append(f"ass='{escaped_ass}'")
+            vf_str = ",".join(filters)
+
+            cmd = [
+                self.ffmpeg_bin,
+                "-y",
+                "-ss", f"{start_time:.3f}",
+                "-t", f"{duration:.3f}",
+                "-i", video_path,
+                "-vf", vf_str,
+                "-c:v", encoder,
+            ]
 
         # Encoder specific options
         if encoder == "h264_nvenc":

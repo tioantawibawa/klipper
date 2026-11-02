@@ -31,6 +31,7 @@ class PipelineConfig:
     subtitle_words_per_line: int = 3
     burn_subtitles: bool = True
     scale_to_1080p: bool = True
+    framing_mode: str = "fit_blur"   # "fit_blur" (Full 16:9 + Blur BG) or "crop_face" (9:16 Zoom Crop)
     output_dir: str = "outputs"
     hardware_encoder: str = "auto"
 
@@ -152,16 +153,22 @@ class OpenClipPipeline:
             if self._cancelled:
                 raise Exception("Cancelled by user.")
 
-            # STEP 4: Face Tracking
-            if on_step:
-                on_step(4, total_steps, f"Face Tracking 9:16 (Klip {clip_idx}/{len(candidate_clips)})")
-
-            crop_w, crop_h, crop_x, crop_y, trajectory = self.face_tracker.track_clip(
-                video_path,
-                start_time=clip.start_time,
-                end_time=clip.end_time,
-                progress_callback=on_progress
-            )
+            # STEP 4: Framing (Fit & Blur vs Face Tracking Crop)
+            if self.config.framing_mode == "crop_face":
+                if on_step:
+                    on_step(4, total_steps, f"Face Tracking 9:16 (Klip {clip_idx}/{len(candidate_clips)})")
+                crop_w, crop_h, crop_x, crop_y, trajectory = self.face_tracker.track_clip(
+                    video_path,
+                    start_time=clip.start_time,
+                    end_time=clip.end_time,
+                    progress_callback=on_progress
+                )
+            else:
+                if on_step:
+                    on_step(4, total_steps, f"Framing Fit & Blur (Klip {clip_idx}/{len(candidate_clips)})")
+                crop_w, crop_h, crop_x, crop_y = 1080, 1920, 0, 0
+                if on_progress:
+                    on_progress(100.0, "Menyiapkan layout Fit Video & Background Blur...")
 
             # Subtitles Generation
             ass_path = None
@@ -198,7 +205,8 @@ class OpenClipPipeline:
                 output_dir=self.config.output_dir,
                 encoder=self.config.hardware_encoder,
                 scale_to_1080p=self.config.scale_to_1080p,
-                burn_subtitles=self.config.burn_subtitles
+                burn_subtitles=self.config.burn_subtitles,
+                framing_mode=self.config.framing_mode
             )
 
             rendered_file = self.video_editor.render_short_clip(

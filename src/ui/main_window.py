@@ -316,23 +316,24 @@ class OpenClipMainWindow(QMainWindow):
 
         grid.addLayout(row1)
 
-        # Row 2: Target Duration Slider & Number of Clips
+        # Row 2: Framing Mode & Number of Clips
         row2 = QHBoxLayout()
         row2.setSpacing(10)
 
-        # Target Duration Slider
-        col3 = QVBoxLayout()
-        col3.setSpacing(4)
-        self.dur_label = QLabel("Durasi Target Klip: 45 detik")
-        self.dur_label.setStyleSheet("background: transparent;")
-        col3.addWidget(self.dur_label)
-        self.dur_slider = QSlider(Qt.Orientation.Horizontal)
-        self.dur_slider.setRange(30, 60)
-        self.dur_slider.setValue(45)
-        self.dur_slider.setFixedHeight(24)
-        self.dur_slider.valueChanged.connect(lambda v: self.dur_label.setText(f"Durasi Target Klip: {v} detik"))
-        col3.addWidget(self.dur_slider)
-        row2.addLayout(col3)
+        # 9:16 Framing Mode
+        col_framing = QVBoxLayout()
+        col_framing.setSpacing(4)
+        lbl_framing = QLabel("Mode Framing 9:16:")
+        lbl_framing.setStyleSheet("background: transparent;")
+        col_framing.addWidget(lbl_framing)
+        self.framing_combo = QComboBox()
+        self.framing_combo.setFixedHeight(34)
+        self.framing_combo.addItems([
+            "Fit & Blur (Teks & Grafis Utuh - Rekomendasi)",
+            "Auto-Crop 9:16 (Fokus Wajah Pembicara)"
+        ])
+        col_framing.addWidget(self.framing_combo)
+        row2.addLayout(col_framing)
 
         # Top Clips Count
         col4 = QVBoxLayout()
@@ -348,10 +349,25 @@ class OpenClipMainWindow(QMainWindow):
 
         grid.addLayout(row2)
 
-        # Row 3: Encoder & Output Folder
+        # Row 3: Target Duration Slider & Video Encoder
         row3 = QHBoxLayout()
         row3.setSpacing(10)
 
+        # Target Duration Slider
+        col3 = QVBoxLayout()
+        col3.setSpacing(4)
+        self.dur_label = QLabel("Durasi Target Klip: 45 detik")
+        self.dur_label.setStyleSheet("background: transparent;")
+        col3.addWidget(self.dur_label)
+        self.dur_slider = QSlider(Qt.Orientation.Horizontal)
+        self.dur_slider.setRange(30, 60)
+        self.dur_slider.setValue(45)
+        self.dur_slider.setFixedHeight(24)
+        self.dur_slider.valueChanged.connect(lambda v: self.dur_label.setText(f"Durasi Target Klip: {v} detik"))
+        col3.addWidget(self.dur_slider)
+        row3.addLayout(col3)
+
+        # Video Encoder
         col_enc = QVBoxLayout()
         col_enc.setSpacing(4)
         lbl_enc = QLabel("Akselerasi Video (Encoder):")
@@ -368,6 +384,10 @@ class OpenClipMainWindow(QMainWindow):
         col_enc.addWidget(self.encoder_combo)
         row3.addLayout(col_enc)
 
+        grid.addLayout(row3)
+
+        # Row 4: Output Folder
+        row4 = QHBoxLayout()
         col5 = QVBoxLayout()
         col5.setSpacing(4)
         lbl_out = QLabel("Folder Output:")
@@ -388,8 +408,8 @@ class OpenClipMainWindow(QMainWindow):
         out_row.addWidget(self.browse_out_btn)
 
         col5.addLayout(out_row)
-        row3.addLayout(col5)
-        grid.addLayout(row3)
+        row4.addLayout(col5)
+        grid.addLayout(row4)
 
         layout.addLayout(grid)
         return card
@@ -647,6 +667,11 @@ class OpenClipMainWindow(QMainWindow):
         enc_map = ["auto", "libx264", "h264_mf", "h264_nvenc"]
         chosen_encoder = enc_map[enc_idx]
 
+        # Framing mode mapping
+        framing_idx = self.framing_combo.currentIndex()
+        framing_map = ["fit_blur", "crop_face"]
+        chosen_framing = framing_map[framing_idx]
+
         target_dur = float(self.dur_slider.value())
         out_dir = self.out_dir_input.text().strip()
 
@@ -657,6 +682,7 @@ class OpenClipMainWindow(QMainWindow):
             max_clip_duration=min(90.0, target_dur + 15.0),
             top_clips_count=chosen_count,
             subtitle_style=chosen_style,
+            framing_mode=chosen_framing,
             output_dir=out_dir,
             scale_to_1080p=True,
             burn_subtitles=True,
@@ -672,7 +698,7 @@ class OpenClipMainWindow(QMainWindow):
         self.progress_pct_label.setText("0%")
 
         self.log_viewer.log("INFO", f"Memulai OpenClip Pipeline untuk: {os.path.basename(self.current_video_path)}")
-        self.log_viewer.log("INFO", f"Model: {chosen_model} | Style: {chosen_style.value} | Target: {target_dur}s")
+        self.log_viewer.log("INFO", f"Model: {chosen_model} | Style: {chosen_style.value} | Framing: {chosen_framing} | Target: {target_dur}s")
 
         self.active_pipeline_worker = PipelineWorker(self.current_video_path, config)
         self.active_pipeline_worker.step_changed.connect(self._on_step_update)
