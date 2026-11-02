@@ -11,7 +11,8 @@ from PyQt6.QtCore import Qt, QThread, pyqtSignal, QSize
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QLineEdit, QComboBox, QSlider, QProgressBar, QTabWidget, QListWidget,
-    QListWidgetItem, QFileDialog, QFrame, QSplitter, QMessageBox, QGroupBox
+    QListWidgetItem, QFileDialog, QFrame, QSplitter, QMessageBox, QGroupBox,
+    QScrollArea
 )
 from PyQt6.QtGui import QIcon, QFont
 
@@ -122,7 +123,7 @@ class OpenClipMainWindow(QMainWindow):
 
         # 2. Main Content Splitter (Left: Inputs & Settings, Right: Player & Logs)
         splitter = QSplitter(Qt.Orientation.Horizontal)
-        splitter.setContentsMargins(16, 16, 16, 16)
+        splitter.setContentsMargins(16, 10, 16, 10)
         splitter.setHandleWidth(8)
 
         left_panel = self._create_left_panel()
@@ -143,7 +144,7 @@ class OpenClipMainWindow(QMainWindow):
         header_frame = QFrame()
         header_frame.setObjectName("header")
         layout = QHBoxLayout(header_frame)
-        layout.setContentsMargins(20, 14, 20, 14)
+        layout.setContentsMargins(20, 10, 20, 10)
 
         # App Brand
         brand_layout = QVBoxLayout()
@@ -172,9 +173,10 @@ class OpenClipMainWindow(QMainWindow):
 
     def _create_left_panel(self) -> QWidget:
         panel = QWidget()
+        panel.setObjectName("leftPanelContent")
         layout = QVBoxLayout(panel)
         layout.setContentsMargins(0, 0, 8, 0)
-        layout.setSpacing(14)
+        layout.setSpacing(12)
 
         # Input Tabs (Local Video vs YouTube URL)
         self.tab_widget = QTabWidget()
@@ -182,7 +184,7 @@ class OpenClipMainWindow(QMainWindow):
         # Tab 1: Local Video Drag & Drop
         self.drop_zone = DropZoneWidget()
         self.drop_zone.file_selected.connect(self._on_local_file_selected)
-        self.tab_widget.addTab(self.drop_zone, "📁 Video Lokal (Drag & Drop)")
+        self.tab_widget.addTab(self.drop_zone, "📁 Video Lokal (Drag && Drop)")
 
         # Tab 2: YouTube URL
         youtube_tab = self._create_youtube_tab()
@@ -193,26 +195,41 @@ class OpenClipMainWindow(QMainWindow):
         # Settings Configuration Card
         settings_card = self._create_settings_card()
         layout.addWidget(settings_card)
+        layout.addStretch()
 
-        return panel
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setFrameShape(QFrame.Shape.NoFrame)
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        scroll_area.setStyleSheet("QScrollArea { background: transparent; border: none; }")
+        scroll_area.setWidget(panel)
+
+        return scroll_area
 
     def _create_youtube_tab(self) -> QWidget:
         frame = QFrame()
         frame.setObjectName("card")
         layout = QVBoxLayout(frame)
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(12)
+        layout.setContentsMargins(16, 14, 16, 14)
+        layout.setSpacing(10)
 
         label = QLabel("Masukkan Tautan Video YouTube:")
-        label.setStyleSheet("font-weight: 600; color: #E2E8F0;")
+        label.setStyleSheet("font-weight: 600; color: #E2E8F0; font-size: 13px; background: transparent;")
         layout.addWidget(label)
 
         input_row = QHBoxLayout()
+        input_row.setSpacing(8)
         self.yt_url_input = QLineEdit()
         self.yt_url_input.setPlaceholderText("https://www.youtube.com/watch?v=...")
+        self.yt_url_input.setFixedHeight(36)
+        self.yt_url_input.returnPressed.connect(self._on_fetch_youtube_info)
         input_row.addWidget(self.yt_url_input)
 
         self.yt_fetch_btn = QPushButton("🔍 Cek Info")
+        self.yt_fetch_btn.setFixedHeight(36)
+        self.yt_fetch_btn.setFixedWidth(110)
+        self.yt_fetch_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.yt_fetch_btn.clicked.connect(self._on_fetch_youtube_info)
         input_row.addWidget(self.yt_fetch_btn)
 
@@ -220,32 +237,29 @@ class OpenClipMainWindow(QMainWindow):
 
         # Preview Info Card
         self.yt_info_card = QFrame()
-        self.yt_info_card.setStyleSheet("background-color: #212530; border-radius: 8px; padding: 12px;")
+        self.yt_info_card.setObjectName("ytInfoCard")
         self.yt_info_card.setVisible(False)
         info_layout = QVBoxLayout(self.yt_info_card)
+        info_layout.setContentsMargins(14, 12, 14, 12)
+        info_layout.setSpacing(8)
 
-        self.yt_title_label = QLabel("")
-        self.yt_title_label.setStyleSheet("font-weight: bold; color: #38BDF8; font-size: 13px;")
+        self.yt_title_label = QLabel("Judul Video YouTube")
+        self.yt_title_label.setStyleSheet("font-weight: bold; color: #38BDF8; font-size: 13px; background: transparent;")
         self.yt_title_label.setWordWrap(True)
         info_layout.addWidget(self.yt_title_label)
 
-        self.yt_meta_label = QLabel("")
-        self.yt_meta_label.setStyleSheet("color: #94A3B8; font-size: 11px;")
+        self.yt_meta_label = QLabel("Detail durasi dan kanal...")
+        self.yt_meta_label.setStyleSheet("color: #94A3B8; font-size: 12px; background: transparent;")
         info_layout.addWidget(self.yt_meta_label)
 
-        self.yt_download_btn = QPushButton("⬇ Unduh & Masukkan ke Pipeline")
-        self.yt_download_btn.setStyleSheet("""
-            background-color: #0284C7;
-            color: white;
-            font-weight: bold;
-            padding: 8px 16px;
-            border-radius: 6px;
-        """)
+        self.yt_download_btn = QPushButton("📥 Unduh Video && Masukkan ke Pipeline")
+        self.yt_download_btn.setObjectName("ytDownloadBtn")
+        self.yt_download_btn.setFixedHeight(40)
+        self.yt_download_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.yt_download_btn.clicked.connect(self._on_start_youtube_download)
         info_layout.addWidget(self.yt_download_btn)
 
         layout.addWidget(self.yt_info_card)
-        layout.addStretch()
 
         return frame
 
@@ -253,23 +267,28 @@ class OpenClipMainWindow(QMainWindow):
         card = QFrame()
         card.setObjectName("card")
         layout = QVBoxLayout(card)
-        layout.setContentsMargins(16, 14, 16, 14)
-        layout.setSpacing(12)
+        layout.setContentsMargins(16, 12, 16, 12)
+        layout.setSpacing(10)
 
         card_title = QLabel("⚙ Konfigurasi AI & Video 9:16")
-        card_title.setStyleSheet("font-weight: bold; font-size: 14px; color: #F8FAFC;")
+        card_title.setStyleSheet("font-weight: bold; font-size: 14px; color: #F8FAFC; background: transparent;")
         layout.addWidget(card_title)
 
         grid = QVBoxLayout()
-        grid.setSpacing(10)
+        grid.setSpacing(8)
 
         # Row 1: Whisper Model & Subtitle Style
         row1 = QHBoxLayout()
+        row1.setSpacing(10)
         
         # Whisper Model
         col1 = QVBoxLayout()
-        col1.addWidget(QLabel("AI Model (faster-whisper):"))
+        col1.setSpacing(4)
+        lbl_model = QLabel("AI Model (faster-whisper):")
+        lbl_model.setStyleSheet("background: transparent;")
+        col1.addWidget(lbl_model)
         self.model_combo = QComboBox()
+        self.model_combo.setFixedHeight(34)
         self.model_combo.addItems([
             "base (Rekomendasi - Cepat & Akurat)",
             "small (Lebih Akurat untuk Audio Bising)",
@@ -280,8 +299,12 @@ class OpenClipMainWindow(QMainWindow):
 
         # Subtitle Style
         col2 = QVBoxLayout()
-        col2.addWidget(QLabel("Gaya Subtitle Animasi (ASS):"))
+        col2.setSpacing(4)
+        lbl_style = QLabel("Gaya Subtitle Animasi (ASS):")
+        lbl_style.setStyleSheet("background: transparent;")
+        col2.addWidget(lbl_style)
         self.style_combo = QComboBox()
+        self.style_combo.setFixedHeight(34)
         self.style_combo.addItems([
             "Bold Yellow (Kuning Pop-Up - Gaya Viral)",
             "Green Highlight (Hijau Neon - Gaya Hormozi)",
@@ -295,22 +318,30 @@ class OpenClipMainWindow(QMainWindow):
 
         # Row 2: Target Duration Slider & Number of Clips
         row2 = QHBoxLayout()
+        row2.setSpacing(10)
 
         # Target Duration Slider
         col3 = QVBoxLayout()
+        col3.setSpacing(4)
         self.dur_label = QLabel("Durasi Target Klip: 45 detik")
+        self.dur_label.setStyleSheet("background: transparent;")
         col3.addWidget(self.dur_label)
         self.dur_slider = QSlider(Qt.Orientation.Horizontal)
         self.dur_slider.setRange(30, 60)
         self.dur_slider.setValue(45)
+        self.dur_slider.setFixedHeight(24)
         self.dur_slider.valueChanged.connect(lambda v: self.dur_label.setText(f"Durasi Target Klip: {v} detik"))
         col3.addWidget(self.dur_slider)
         row2.addLayout(col3)
 
         # Top Clips Count
         col4 = QVBoxLayout()
-        col4.addWidget(QLabel("Jumlah Klip Terbaik:"))
+        col4.setSpacing(4)
+        lbl_count = QLabel("Jumlah Klip Terbaik:")
+        lbl_count.setStyleSheet("background: transparent;")
+        col4.addWidget(lbl_count)
         self.clips_count_combo = QComboBox()
+        self.clips_count_combo.setFixedHeight(34)
         self.clips_count_combo.addItems(["3 Klip Terbaik", "1 Klip Terbaik", "5 Klip Terbaik"])
         col4.addWidget(self.clips_count_combo)
         row2.addLayout(col4)
@@ -319,10 +350,15 @@ class OpenClipMainWindow(QMainWindow):
 
         # Row 3: Encoder & Output Folder
         row3 = QHBoxLayout()
+        row3.setSpacing(10)
 
         col_enc = QVBoxLayout()
-        col_enc.addWidget(QLabel("Akselerasi Video (Encoder):"))
+        col_enc.setSpacing(4)
+        lbl_enc = QLabel("Akselerasi Video (Encoder):")
+        lbl_enc.setStyleSheet("background: transparent;")
+        col_enc.addWidget(lbl_enc)
         self.encoder_combo = QComboBox()
+        self.encoder_combo.setFixedHeight(34)
         self.encoder_combo.addItems([
             "auto (Deteksi Otomatis & Teruji)",
             "libx264 (CPU Multi-Thread - 100% Stabil)",
@@ -333,14 +369,20 @@ class OpenClipMainWindow(QMainWindow):
         row3.addLayout(col_enc)
 
         col5 = QVBoxLayout()
-        col5.addWidget(QLabel("Folder Output:"))
+        col5.setSpacing(4)
+        lbl_out = QLabel("Folder Output:")
+        lbl_out.setStyleSheet("background: transparent;")
+        col5.addWidget(lbl_out)
         out_row = QHBoxLayout()
+        out_row.setSpacing(6)
         self.out_dir_input = QLineEdit()
+        self.out_dir_input.setFixedHeight(34)
         default_out = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "outputs"))
         self.out_dir_input.setText(default_out)
         out_row.addWidget(self.out_dir_input)
 
         self.browse_out_btn = QPushButton("Ganti...")
+        self.browse_out_btn.setFixedHeight(34)
         self.browse_out_btn.setFixedWidth(75)
         self.browse_out_btn.clicked.connect(self._on_browse_output_dir)
         out_row.addWidget(self.browse_out_btn)
@@ -398,8 +440,8 @@ class OpenClipMainWindow(QMainWindow):
         frame = QFrame()
         frame.setObjectName("header")
         layout = QVBoxLayout(frame)
-        layout.setContentsMargins(20, 12, 20, 14)
-        layout.setSpacing(8)
+        layout.setContentsMargins(20, 10, 20, 10)
+        layout.setSpacing(6)
 
         # Status & Step labels row
         status_row = QHBoxLayout()
@@ -425,7 +467,7 @@ class OpenClipMainWindow(QMainWindow):
         btn_row = QHBoxLayout()
         btn_row.setSpacing(12)
 
-        self.start_btn = QPushButton("🚀 Mulai Proses Klip 9:16 (Auto-Framing & Subtitle)")
+        self.start_btn = QPushButton("🚀 Mulai Proses Klip 9:16 (Auto-Framing && Subtitle)")
         self.start_btn.setObjectName("primaryButton")
         self.start_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.start_btn.clicked.connect(self._on_start_processing)
@@ -468,6 +510,7 @@ class OpenClipMainWindow(QMainWindow):
             self.yt_info_card.setVisible(True)
             self.log_viewer.log("SUCCESS", f"Info didapatkan: {info['title']} ({info['duration_str']})")
         except Exception as e:
+            self.yt_info_card.setVisible(False)
             self.log_viewer.log("ERROR", f"Gagal mengambil info YouTube: {e}")
             QMessageBox.critical(self, "Error", f"Gagal mengambil info video:\n{e}")
         finally:

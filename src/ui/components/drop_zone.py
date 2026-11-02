@@ -26,19 +26,19 @@ class DropZoneWidget(QFrame):
 
     def _init_ui(self):
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(24, 30, 24, 30)
-        layout.setSpacing(12)
+        layout.setContentsMargins(20, 14, 20, 14)
+        layout.setSpacing(8)
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # Icon Label
         self.icon_label = QLabel("🎬")
-        self.icon_label.setStyleSheet("font-size: 42px; background: transparent;")
+        self.icon_label.setStyleSheet("font-size: 30px; background: transparent;")
         self.icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.icon_label)
 
         # Primary Text
         self.title_label = QLabel("Tarik & Lepas File Video ke Sini")
-        self.title_label.setStyleSheet("font-size: 16px; font-weight: bold; color: #F8FAFC; background: transparent;")
+        self.title_label.setStyleSheet("font-size: 14px; font-weight: bold; color: #F8FAFC; background: transparent;")
         self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.title_label)
 
@@ -51,21 +51,24 @@ class DropZoneWidget(QFrame):
         # Browse Button
         self.browse_btn = QPushButton("📁 Pilih Video dari Laptop")
         self.browse_btn.setFixedWidth(220)
+        self.browse_btn.setFixedHeight(34)
         self.browse_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.browse_btn.clicked.connect(self._on_browse_clicked)
         layout.addWidget(self.browse_btn, alignment=Qt.AlignmentFlag.AlignCenter)
 
         # File Info Frame (hidden until file selected)
         self.info_frame = QFrame()
+        self.info_frame.setObjectName("fileInfoFrame")
         self.info_frame.setStyleSheet("""
-            background-color: #212530;
-            border: 1px solid #38BDF8;
-            border-radius: 8px;
-            padding: 8px 14px;
+            QFrame#fileInfoFrame {
+                background-color: #212530;
+                border: 1px solid #38BDF8;
+                border-radius: 8px;
+            }
         """)
         self.info_frame.setVisible(False)
         info_layout = QHBoxLayout(self.info_frame)
-        info_layout.setContentsMargins(8, 4, 8, 4)
+        info_layout.setContentsMargins(14, 8, 14, 8)
 
         self.file_name_label = QLabel("")
         self.file_name_label.setStyleSheet("color: #38BDF8; font-weight: bold; background: transparent;")

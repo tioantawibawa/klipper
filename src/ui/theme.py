@@ -19,7 +19,6 @@ QFrame#card {
     background-color: #1A1C23;
     border: 1px solid #282C37;
     border-radius: 10px;
-    padding: 12px;
 }
 
 QFrame#sidebar {
@@ -67,7 +66,8 @@ QPushButton {
     color: #F8FAFC;
     border: 1px solid #3B4254;
     border-radius: 6px;
-    padding: 8px 16px;
+    padding: 6px 14px;
+    min-height: 28px;
     font-weight: 600;
 }
 
@@ -92,7 +92,8 @@ QPushButton#primaryButton {
     color: #FFFFFF;
     border: none;
     border-radius: 8px;
-    padding: 12px 24px;
+    min-height: 44px;
+    padding: 10px 24px;
     font-size: 14px;
     font-weight: bold;
 }
@@ -105,13 +106,42 @@ QPushButton#primaryButton:pressed {
     background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #1E40AF, stop:1 #0E7490);
 }
 
+/* YouTube Download Action Button */
+QPushButton#ytDownloadBtn {
+    background-color: #0284C7;
+    color: #FFFFFF;
+    border: 1px solid #38BDF8;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: bold;
+    min-height: 42px;
+    padding: 6px 16px;
+    text-align: center;
+}
+
+QPushButton#ytDownloadBtn:hover {
+    background-color: #0369A1;
+    border-color: #7DD3FC;
+}
+
+QPushButton#ytDownloadBtn:pressed {
+    background-color: #075985;
+}
+
+QPushButton#ytDownloadBtn:disabled {
+    background-color: #1E293B;
+    color: #64748B;
+    border-color: #334155;
+}
+
 /* Danger / Cancel Button */
 QPushButton#dangerButton {
     background-color: #7F1D1D;
     color: #FECACA;
     border: 1px solid #991B1B;
     border-radius: 8px;
-    padding: 12px 20px;
+    min-height: 44px;
+    padding: 10px 20px;
     font-size: 14px;
     font-weight: bold;
 }
@@ -120,13 +150,32 @@ QPushButton#dangerButton:hover {
     background-color: #991B1B;
 }
 
+/* Info Card Frame */
+QFrame#ytInfoCard {
+    background-color: #1A1F2C;
+    border: 1px solid #2B3548;
+    border-radius: 8px;
+}
+
 /* Line Edit & Inputs */
-QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox {
+QLineEdit {
     background-color: #14161E;
     color: #F1F5F9;
     border: 1px solid #2E3445;
     border-radius: 6px;
-    padding: 8px 12px;
+    padding: 4px 10px;
+    min-height: 34px;
+    font-size: 13px;
+}
+
+QComboBox, QSpinBox, QDoubleSpinBox {
+    background-color: #14161E;
+    color: #F1F5F9;
+    border: 1px solid #2E3445;
+    border-radius: 6px;
+    padding: 2px 10px;
+    min-height: 34px;
+    font-size: 13px;
 }
 
 QLineEdit:focus, QComboBox:focus, QSpinBox:focus {
