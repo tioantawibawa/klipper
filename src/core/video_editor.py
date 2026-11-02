@@ -183,9 +183,11 @@ class VideoEditor:
         if config.scale_to_1080p:
             filters.append("scale=1080:1920:flags=lanczos")
 
-        # 3. ASS Subtitles (with Windows path escaping)
+        # 3. ASS Subtitles (with Windows path escaping and quote escaping)
         if config.burn_subtitles and ass_subtitles_path and os.path.exists(ass_subtitles_path):
-            escaped_ass = os.path.abspath(ass_subtitles_path).replace("\\", "/").replace(":", "\\:")
+            escaped_ass = os.path.abspath(ass_subtitles_path).replace("\\", "/")
+            escaped_ass = escaped_ass.replace(":", r"\:")
+            escaped_ass = escaped_ass.replace("'", r"'\\\''")
             filters.append(f"ass='{escaped_ass}'")
 
         vf_str = ",".join(filters)
@@ -272,7 +274,11 @@ class VideoEditor:
         if returncode != 0:
             if self._cancelled:
                 raise Exception("Rendering cancelled.")
-            err_details = "\n".join(recent_stderr)
+            filtered_err = [
+                l for l in recent_stderr
+                if not l.startswith(("configuration:", "built with", "libav", "ffmpeg version"))
+            ]
+            err_details = "\n".join(filtered_err if filtered_err else recent_stderr)
             raise RuntimeError(f"FFmpeg rendering failed with {encoder} (code {returncode}):\n{err_details}")
 
         if progress_callback:

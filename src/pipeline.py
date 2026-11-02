@@ -6,6 +6,7 @@ Audio Extraction -> Word-level Transcription -> Moment Detection ->
 """
 
 import os
+import re
 from dataclasses import dataclass
 from typing import List, Optional, Callable, Dict, Any
 
@@ -98,6 +99,9 @@ class OpenClipPipeline:
         os.makedirs(work_dir, exist_ok=True)
 
         base_video_name = os.path.splitext(os.path.basename(video_path))[0]
+        # Sanitize filename for generated media files to prevent issues with quotes, colons, or invalid chars
+        safe_base_name = re.sub(r"[^\w\-.]", "_", base_video_name)
+        safe_base_name = re.sub(r"_+", "_", safe_base_name).strip("_") or "clip"
 
         # STEP 1: Audio Extraction
         if on_step:
@@ -105,7 +109,7 @@ class OpenClipPipeline:
         if self._cancelled:
             raise Exception("Cancelled by user.")
 
-        wav_path = os.path.join(work_dir, f"{base_video_name}_16k.wav")
+        wav_path = os.path.join(work_dir, f"{safe_base_name}_16k.wav")
         self.audio_extractor.extract_wav(
             video_path,
             output_wav_path=wav_path,
@@ -176,7 +180,7 @@ class OpenClipPipeline:
                         if clip.start_time <= w.end and w.start <= clip.end_time:
                             clip_words.append(w)
 
-                ass_file = os.path.join(work_dir, f"clip_{clip_idx}_{base_video_name}.ass")
+                ass_file = os.path.join(work_dir, f"clip_{clip_idx}_subtitles.ass")
                 ass_path = sub_gen.generate_ass(
                     words=clip_words,
                     output_ass_path=ass_file,
@@ -187,7 +191,7 @@ class OpenClipPipeline:
             if on_step:
                 on_step(5, total_steps, f"Render Klip 9:16 FFmpeg ({clip_idx}/{len(candidate_clips)})")
 
-            out_clip_name = f"{base_video_name}_short_{clip_idx}_{int(clip.start_time)}s.mp4"
+            out_clip_name = f"{safe_base_name}_short_{clip_idx}_{int(clip.start_time)}s.mp4"
             out_clip_path = os.path.join(self.config.output_dir, out_clip_name)
 
             render_cfg = RenderConfig(

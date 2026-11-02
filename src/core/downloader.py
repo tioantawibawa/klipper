@@ -97,6 +97,7 @@ class YouTubeDownloader:
             'outtmpl': out_template,
             'merge_output_format': 'mp4',
             'progress_hooks': [hook],
+            'windowsfilenames': True,
             'quiet': True,
             'no_warnings': True,
         }
